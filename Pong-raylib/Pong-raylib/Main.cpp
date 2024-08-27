@@ -18,6 +18,7 @@ class Ball {
         }
         void DrawBall() {
             DrawCircle(x, y, radius, GetColor(0xFFD700FF)); //Disegna la palla
+            DrawCircleLines(x, y, radius, BLACK);
         }
         void UpdateBall() { //far muovere la palla
             x += speed_x;
@@ -59,6 +60,12 @@ class Ball {
         void setspeedX(float speedX) {
             speed_x = speedX;
         }
+};
+
+enum GameState{
+    MENU,
+    GAMEPLAY,
+    PAUSE
 };
 
 void CheckMovimentoPaddle(int &Paddle_y) { //paddle necessario per il movimento
@@ -115,7 +122,7 @@ void MostraTestoGo(bool& showGoText, int& goTextFrames, const int goTextDuration
     if (showLightEffect < 5) {// Mostriamo il testo solo quando la palla sta per ripartire
         if (showGoText) {
             // Disegna il testo al centro dello schermo
-            DrawText("GO!", (GetScreenWidth() / 2) - (MeasureText("GO!", 100) / 2), (GetScreenHeight() / 2) - (MeasureText("GO!", 100) / 2), 100, BLACK);
+            DrawText("GO!", (GetScreenWidth() / 2) - (MeasureText("GO!", 100) / 2), (GetScreenHeight() / 2) - (50), 100, BLACK);
 
             // Decrementa il contatore dei frame
             goTextFrames--;
@@ -128,6 +135,25 @@ void MostraTestoGo(bool& showGoText, int& goTextFrames, const int goTextDuration
     }
 }
 
+void DisegnaPaddle(Rectangle PaddleAI, Rectangle PaddleGiocatore, Color PaddleColor){
+    // Disegna Paddle giocatore 1 
+    DrawRectangleRounded(PaddleAI, 0.8, 0, PaddleColor); 
+    DrawRectangleRoundedLines(PaddleAI, 0.8, 0, 1.0, BLACK);
+
+    // Paddle giocatore 2
+    DrawRectangleRounded(PaddleGiocatore, 0.8, 0, PaddleColor); 
+    DrawRectangleRoundedLines(PaddleGiocatore, 0.8, 0, 1.0, BLACK);
+}
+
+void DisegnaMenuPausa(Rectangle Pausa[], Color lightColor) { // Disegnare menu di pausa (Rettangoli e scritte)
+    DrawRectangleRec(Pausa[0], lightColor);
+    DrawRectangleRec(Pausa[1], lightColor);
+    DrawRectangleRec(Pausa[2], lightColor);
+    DrawText("RIPRENDI", Pausa[0].x + (Pausa[0].width - MeasureText("RIPRENDI", 60)) / 2, Pausa[0].y + (Pausa[0].height - 60) / 2, 60, WHITE);
+    DrawText("MENU", Pausa[1].x + (Pausa[1].width - MeasureText("MENU", 60)) / 2, Pausa[1].y + (Pausa[1].height - 60) / 2, 60, WHITE);
+    DrawText("ESCI", Pausa[2].x + (Pausa[2].width - MeasureText("ESCI", 60)) / 2, Pausa[2].y + (Pausa[2].height - 60) / 2, 60, WHITE);
+}
+
 Ball palla1;
 int main(void)
 {
@@ -138,7 +164,7 @@ int main(void)
     const int screenHeight = 800;
     int Paddle_y = screenHeight / 2;
     float PaddleAI_y = screenHeight / 2;
-    float PaddleAI_speed = 5.8;
+    float PaddleAI_speed = 5.9;
     int PunteggioUser = 0, PunteggioAI = 0;
     SetConfigFlags(FLAG_VSYNC_HINT); // Rende tutto più fluido
     InitWindow(screenWidth, screenHeight, "Pong game!");
@@ -158,84 +184,153 @@ int main(void)
     // Variabili per il testo "GO!"
     bool showGoText = false;
     int goTextFrames = 0;
-    const int goTextDurationFrames = 30; // Mostra il testo per 30 frame
+    const int goTextDurationFrames = 40; // Mostra il testo per 40 frame
+
+    Rectangle pauseButton = { screenWidth - 60, 10, 50, 50 }; // Bottone di pausa
+    Rectangle ButtonsPause[3];
+    const int ButtonsPauseWidth = 400, ButtonsPauseHeight = 150; //Definisce altezza e larghezza dei bottoni di pausa
+    Rectangle startButton = { screenWidth / 2 - 100, screenHeight / 2 + 75, 200, 70}; // Bottone di avvio
+    GameState stato = MENU; //Il programma inizia con il menu 
 
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
-        //update
-        palla1.UpdateBall(); //muovere la palla 
-        CheckMovimentoPaddle(Paddle_y); //per muovere il paddle 
         Rectangle PaddleGiocatore = { (float)(screenWidth - 35), (float)(Paddle_y - 60), (float)25, (float)120 };
-        Rectangle PaddleAI = {(float)10,(float)(PaddleAI_y - 60),(float)25,(float)120 };
-        MovimentoPaddleAI(PaddleAI_y, PaddleAI_speed, palla1);
+        Rectangle PaddleAI = { (float)10,(float)(PaddleAI_y - 60),(float)25,(float)120 };
 
-        //Controllo se uno dei due giocatori fa punto
-        if (palla1.GetX() + 20 >= screenWidth) { 
-            palla1.ResetPartita(); //viene resettata la palla al centro dello schermo
-            PunteggioAI++; //incremento punteggio
+        if (stato == MENU) {
+            // Controllo se il giocatore clicca sul bottone "Start Game"
+            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+                Vector2 mousePos = GetMousePosition(); //Posizione del mouse 
 
-            showGoText = true;
-            goTextFrames = goTextDurationFrames;
-
-            //Effetti illuminazione
-            showLightEffect = 30;
-            lightRect = { screenWidth - 50, 10, 45, screenHeight - 20 };
-
-            //Cambia il lato in cui andrà la palla
-            palla1.setspeedX(6.5);
-            palla1.setspeedY((PunteggioAI % 2 == 0) ? -6.5 : 6.5);
+                if (CheckCollisionPointRec(mousePos, startButton)) { // Controlla se lo user preme start
+                    stato = GAMEPLAY; // Avvia il gioco
+                }
+            }
         }
-        else if (palla1.GetX() - 20 <= 0) {
-            palla1.ResetPartita();
-            PunteggioUser++;
+        else if (stato == GAMEPLAY) {
+            //update
+            palla1.UpdateBall(); //muovere la palla 
+            CheckMovimentoPaddle(Paddle_y); //per muovere il paddle 
+            
+            MovimentoPaddleAI(PaddleAI_y, PaddleAI_speed, palla1);
 
-            showGoText = true;
-            goTextFrames = goTextDurationFrames;
+            // Controllo se il giocatore clicca sul bottone "PAUSA"
+            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+                Vector2 mousePos = GetMousePosition(); //Posizione del mouse 
 
-            //effetti illuminazione
-            showLightEffect = 30;
-            lightRect = { 10, 10, 50, screenHeight - 20 };
+                if (CheckCollisionPointRec(mousePos, pauseButton)) { // Controlla se lo user preme start
+                    stato = PAUSE; // Avvia il gioco
+                }
+            }
 
-            //Cambia il lato in cui andrà la palla
-            palla1.setspeedX(-6.5);
-            palla1.setspeedY((PunteggioUser % 2 == 0) ? -6.5 : 6.5);
+            //Controllo se uno dei due giocatori fa punto
+            if (palla1.GetX() + 20 >= screenWidth) {
+                palla1.ResetPartita(); //viene resettata la palla al centro dello schermo
+                PunteggioAI++; //incremento punteggio
+
+                showGoText = true;
+                goTextFrames = goTextDurationFrames;
+
+                //Effetti illuminazione
+                showLightEffect = 30;
+                lightRect = { screenWidth - 50, 10, 45, screenHeight - 20 };
+
+                //Cambia il lato in cui andrà la palla
+                palla1.setspeedX(6.5);
+                palla1.setspeedY((PunteggioAI % 2 == 0) ? -6.5 : 6.5);
+            }
+            else if (palla1.GetX() - 20 <= 0) {
+                palla1.ResetPartita();
+                PunteggioUser++;
+
+                showGoText = true;
+                goTextFrames = goTextDurationFrames;
+
+                //effetti illuminazione
+                showLightEffect = 30;
+                lightRect = { 10, 10, 50, screenHeight - 20 };
+
+                //Cambia il lato in cui andrà la palla
+                palla1.setspeedX(-6.5);
+                palla1.setspeedY((PunteggioUser % 2 == 0) ? -6.5 : 6.5);
+            }
+            else {
+                showLightEffect--;
+            }
+
+            //Aumentare o diminuire velocità AI
+            if ((PunteggioAI + PunteggioUser == 3 || PunteggioAI + PunteggioUser == 6) && counter == 0) {
+                PaddleAI_speed += IncrementoDifficolta(PunteggioAI, PunteggioUser);
+                counter = 1; // Blocca ulteriori incrementi finché non viene resettato
+            }
+            else if (PunteggioAI + PunteggioUser != 3 && PunteggioAI + PunteggioUser != 6) {
+                counter = 0; // Resetta il counter per il prossimo incremento
+            }
+            
         }
-        else {
-            showLightEffect--;
+        else if(stato == PAUSE){
+            ButtonsPause[0] = { (screenWidth / 2) - (ButtonsPauseWidth / 2), (screenHeight / 3 + 100) - (ButtonsPauseHeight * 2 ), ButtonsPauseWidth, ButtonsPauseHeight};
+            ButtonsPause[1] = { (screenWidth / 2) - (ButtonsPauseWidth / 2), ((screenHeight / 3) * 2 + 100)  - (ButtonsPauseHeight * 2 ), ButtonsPauseWidth, ButtonsPauseHeight };
+            ButtonsPause[2] = { (screenWidth / 2) - (ButtonsPauseWidth / 2), (screenHeight + 100) - (ButtonsPauseHeight * 2), ButtonsPauseWidth, ButtonsPauseHeight };
         }
 
-        //Aumentare o diminuire velocità AI
-        if ((PunteggioAI + PunteggioUser == 3 || PunteggioAI + PunteggioUser == 6) && counter == 0) {
-            PaddleAI_speed += IncrementoDifficolta(PunteggioAI, PunteggioUser); 
-            counter = 1; // Blocca ulteriori incrementi finché non viene resettato
-        }
-        else if (PunteggioAI + PunteggioUser != 3 && PunteggioAI + PunteggioUser != 6) {
-            counter = 0; // Resetta il counter per il prossimo incremento
-        }
+        BeginDrawing();
 
-        BeginDrawing(); 
-        
         ClearBackground(cornflowerBlue);
-        DrawText(TextFormat("FPS: %d", GetFPS()), 10, 10, 20, TextColor); // Mostra gli FPS a schermo
-        
-        if ((CheckCollisionCircleRec(palla1.GetCD(), (float)20, PaddleGiocatore)) || (CheckCollisionCircleRec(palla1.GetCD(), (float)20, PaddleAI))){
-            palla1.InvertiVelocitaX(); // Inverte la velocità della palla se c'è una collisione con un paddle
-            palla1.UpdateBall(); // Aggiorna la posizione della palla per evitare sovrapposizioni 
-        }
-        //drawing objects
-        palla1.DrawBall();
-        DrawRectangleRec(PaddleAI, PaddleColor); // Disegna Paddle giocatore 1 
-        DrawRectangleRec(PaddleGiocatore, PaddleColor); // Paddle giocatore 2
-        DrawLine(screenWidth / 2, 0, screenWidth / 2, screenHeight, BLACK);
-        DrawText("YOUR SIDE", (screenWidth/2) + 25, 50, 25, TextColor);
-        DrawText("CPU SIDE", ((screenWidth / 2) - (MeasureText("CPU SIDE", 25) + 25)), 50, 25, TextColor);
-        DrawText(TextFormat("%d", PunteggioUser), (screenWidth / 2) + (MeasureText("CPU SIDE", 25) / 2), 10, 30, BLACK);
-        DrawText(TextFormat("%d", PunteggioAI), (screenWidth / 2) - ((MeasureText("CPU SIDE", 25) / 2) + MeasureText("0",30)), 10, 30, BLACK);
-        MostraTestoGo(showGoText, goTextFrames, goTextDurationFrames, showLightEffect); //Mostrare il testo GO!
-        // Disegna l'effetto di illuminazione se necessario
-        LightEffect(lightRect, lightColor, showLightEffect, palla1);
-        EndDrawing(); 
+
+            if (stato == MENU) {
+                DrawRectangleRec(startButton, RAYWHITE); // Disegna il bottone "Start"
+                DrawText("PONG GAME", screenWidth / 2 - MeasureText("PONG GAME", 100) / 2, screenHeight / 2 - 250, 100, DARKBLUE);
+                DrawText("Click to Start", screenWidth / 2 - MeasureText("Click to Start", 20) / 2, screenHeight / 2 + 100, 20, DARKGRAY);               
+            }
+            else if (stato == GAMEPLAY) {
+
+                DrawRectangle(0, 0, screenWidth / 2, screenHeight, GetColor(0x5077C0FF));
+                DrawText(TextFormat("FPS: %d", GetFPS()), 10, 10, 20, TextColor); // Mostra gli FPS a schermo
+
+                if ((CheckCollisionCircleRec(palla1.GetCD(), (float)20, PaddleGiocatore)) || (CheckCollisionCircleRec(palla1.GetCD(), (float)20, PaddleAI))) {
+                    palla1.InvertiVelocitaX(); // Inverte la velocità della palla se c'è una collisione con un paddle
+                    palla1.UpdateBall(); // Aggiorna la posizione della palla per evitare sovrapposizioni 
+                }
+                //drawing objects
+                DrawCircle(screenWidth / 2, screenHeight / 2, 105, GetColor(0xAFCBFFFF)); // Cerchio centrale
+                DrawCircleLines(screenWidth / 2, screenHeight / 2, 105, BLACK);
+                palla1.DrawBall();
+                DisegnaPaddle(PaddleAI, PaddleGiocatore, PaddleColor);
+                DrawLine(screenWidth / 2, 0, screenWidth / 2, screenHeight, BLACK); // Linea centrale    
+                DrawText("YOUR SIDE", (screenWidth / 2) + 25, 50, 25, TextColor);
+                DrawText("CPU SIDE", ((screenWidth / 2) - (MeasureText("CPU SIDE", 25) + 25)), 50, 25, TextColor);
+                DrawText(TextFormat("%d", PunteggioUser), (screenWidth / 2) + (MeasureText("CPU SIDE", 25) / 2), 10, 30, BLACK);
+                DrawText(TextFormat("%d", PunteggioAI), (screenWidth / 2) - ((MeasureText("CPU SIDE", 25) / 2) + MeasureText("0", 30)), 10, 30, BLACK);
+                DrawRectangleRec(pauseButton, GetColor(0xAFCBFFFF)); DrawRectangleLinesEx(pauseButton, 0.8, BLACK);
+                DrawText("| |", pauseButton.x + (pauseButton.width - MeasureText("| |", 30)) / 2, pauseButton.y + (pauseButton.height - 25) / 2, 30, BLACK);
+                MostraTestoGo(showGoText, goTextFrames, goTextDurationFrames, showLightEffect); //Mostrare il testo GO!
+                // Disegna l'effetto di illuminazione se necessario
+                LightEffect(lightRect, lightColor, showLightEffect, palla1);
+                
+            }
+            else if (stato == PAUSE) {
+                DisegnaMenuPausa(ButtonsPause, GetColor(0x5077C0FF));
+                if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+                    Vector2 mousePos = GetMousePosition(); //Posizione del mouse 
+
+                    if (CheckCollisionPointRec(mousePos, ButtonsPause[0])) { 
+                        stato = GAMEPLAY; // Riprende il gioco
+                    }
+                    else if (CheckCollisionPointRec(mousePos, ButtonsPause[1])) {
+                        stato = MENU; // Torna al menu
+                        PunteggioAI = 0; PunteggioUser = 0; // Porta a 0 i punteggi
+                        palla1.ResetPartita(); // Resetta la palla al centro
+                    }
+                    else if (CheckCollisionPointRec(mousePos, ButtonsPause[2])) {
+                        CloseWindow(); // Chiude la finestra
+                        return 0;
+                    }
+                }
+            }
+
+         EndDrawing();
     }
 
     // De-Initialization
@@ -245,5 +340,3 @@ int main(void)
 
     return 0;
 }
-
-//DrawText("GO!", (screenWidth / 2) - (MeasureText("GO!", 60) / 2), (screenHeight / 2) - (MeasureText("GO!", 60)), 60, BLACK);

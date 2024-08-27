@@ -1,14 +1,29 @@
 ﻿  Main.cpp
 C:\Users\mirco\Desktop\C++\Pong-raylib\Pong-raylib\Main.cpp(20,27): warning C4244: 'argomento': conversione da 'float' a 'int'. Possibile perdita di dati.
 C:\Users\mirco\Desktop\C++\Pong-raylib\Pong-raylib\Main.cpp(20,24): warning C4244: 'argomento': conversione da 'float' a 'int'. Possibile perdita di dati.
-C:\Users\mirco\Desktop\C++\Pong-raylib\Pong-raylib\Main.cpp(34,34): warning C4244: '=': conversione da 'int' a 'float'. Possibile perdita di dati.
-C:\Users\mirco\Desktop\C++\Pong-raylib\Pong-raylib\Main.cpp(35,35): warning C4244: '=': conversione da 'int' a 'float'. Possibile perdita di dati.
-C:\Users\mirco\Desktop\C++\Pong-raylib\Pong-raylib\Main.cpp(54,20): warning C4244: 'return': conversione da 'float' a 'int'. Possibile perdita di dati.
-C:\Users\mirco\Desktop\C++\Pong-raylib\Pong-raylib\Main.cpp(66,21): warning C4244: '+=': conversione da 'double' a 'int'. Possibile perdita di dati.
-C:\Users\mirco\Desktop\C++\Pong-raylib\Pong-raylib\Main.cpp(69,21): warning C4244: '-=': conversione da 'double' a 'int'. Possibile perdita di dati.
-C:\Users\mirco\Desktop\C++\Pong-raylib\Pong-raylib\Main.cpp(88,40): warning C4244: '=': conversione da 'int' a 'float'. Possibile perdita di dati.
-C:\Users\mirco\Desktop\C++\Pong-raylib\Pong-raylib\Main.cpp(134,15): warning C4244: 'argomento': conversione da 'time_t' a 'unsigned int'. Possibile perdita di dati.
-C:\Users\mirco\Desktop\C++\Pong-raylib\Pong-raylib\Main.cpp(141,26): warning C4305: 'inizializzazione': troncamento da 'double' a 'float'
-C:\Users\mirco\Desktop\C++\Pong-raylib\Pong-raylib\Main.cpp(187,47): warning C4244: 'argomento': conversione da 'double' a 'float'. Possibile perdita di dati.
-C:\Users\mirco\Desktop\C++\Pong-raylib\Pong-raylib\Main.cpp(202,49): warning C4244: 'argomento': conversione da 'double' a 'float'. Possibile perdita di dati.
+C:\Users\mirco\Desktop\C++\Pong-raylib\Pong-raylib\Main.cpp(21,32): warning C4244: 'argomento': conversione da 'float' a 'int'. Possibile perdita di dati.
+C:\Users\mirco\Desktop\C++\Pong-raylib\Pong-raylib\Main.cpp(21,29): warning C4244: 'argomento': conversione da 'float' a 'int'. Possibile perdita di dati.
+C:\Users\mirco\Desktop\C++\Pong-raylib\Pong-raylib\Main.cpp(35,34): warning C4244: '=': conversione da 'int' a 'float'. Possibile perdita di dati.
+C:\Users\mirco\Desktop\C++\Pong-raylib\Pong-raylib\Main.cpp(36,35): warning C4244: '=': conversione da 'int' a 'float'. Possibile perdita di dati.
+C:\Users\mirco\Desktop\C++\Pong-raylib\Pong-raylib\Main.cpp(55,20): warning C4244: 'return': conversione da 'float' a 'int'. Possibile perdita di dati.
+C:\Users\mirco\Desktop\C++\Pong-raylib\Pong-raylib\Main.cpp(73,21): warning C4244: '+=': conversione da 'double' a 'int'. Possibile perdita di dati.
+C:\Users\mirco\Desktop\C++\Pong-raylib\Pong-raylib\Main.cpp(76,21): warning C4244: '-=': conversione da 'double' a 'int'. Possibile perdita di dati.
+C:\Users\mirco\Desktop\C++\Pong-raylib\Pong-raylib\Main.cpp(95,40): warning C4244: '=': conversione da 'int' a 'float'. Possibile perdita di dati.
+C:\Users\mirco\Desktop\C++\Pong-raylib\Pong-raylib\Main.cpp(140,36): warning C4305: 'argomento': troncamento da 'double' a 'float'
+C:\Users\mirco\Desktop\C++\Pong-raylib\Pong-raylib\Main.cpp(141,41): warning C4305: 'argomento': troncamento da 'double' a 'float'
+C:\Users\mirco\Desktop\C++\Pong-raylib\Pong-raylib\Main.cpp(144,43): warning C4305: 'argomento': troncamento da 'double' a 'float'
+C:\Users\mirco\Desktop\C++\Pong-raylib\Pong-raylib\Main.cpp(145,48): warning C4305: 'argomento': troncamento da 'double' a 'float'
+C:\Users\mirco\Desktop\C++\Pong-raylib\Pong-raylib\Main.cpp(152,102): warning C4244: 'argomento': conversione da 'float' a 'int'. Possibile perdita di dati.
+C:\Users\mirco\Desktop\C++\Pong-raylib\Pong-raylib\Main.cpp(152,37): warning C4244: 'argomento': conversione da 'float' a 'int'. Possibile perdita di dati.
+C:\Users\mirco\Desktop\C++\Pong-raylib\Pong-raylib\Main.cpp(153,94): warning C4244: 'argomento': conversione da 'float' a 'int'. Possibile perdita di dati.
+C:\Users\mirco\Desktop\C++\Pong-raylib\Pong-raylib\Main.cpp(153,33): warning C4244: 'argomento': conversione da 'float' a 'int'. Possibile perdita di dati.
+C:\Users\mirco\Desktop\C++\Pong-raylib\Pong-raylib\Main.cpp(154,94): warning C4244: 'argomento': conversione da 'float' a 'int'. Possibile perdita di dati.
+C:\Users\mirco\Desktop\C++\Pong-raylib\Pong-raylib\Main.cpp(154,33): warning C4244: 'argomento': conversione da 'float' a 'int'. Possibile perdita di dati.
+C:\Users\mirco\Desktop\C++\Pong-raylib\Pong-raylib\Main.cpp(160,15): warning C4244: 'argomento': conversione da 'time_t' a 'unsigned int'. Possibile perdita di dati.
+C:\Users\mirco\Desktop\C++\Pong-raylib\Pong-raylib\Main.cpp(167,26): warning C4305: 'inizializzazione': troncamento da 'double' a 'float'
+C:\Users\mirco\Desktop\C++\Pong-raylib\Pong-raylib\Main.cpp(241,51): warning C4244: 'argomento': conversione da 'double' a 'float'. Possibile perdita di dati.
+C:\Users\mirco\Desktop\C++\Pong-raylib\Pong-raylib\Main.cpp(256,53): warning C4244: 'argomento': conversione da 'double' a 'float'. Possibile perdita di dati.
+C:\Users\mirco\Desktop\C++\Pong-raylib\Pong-raylib\Main.cpp(306,104): warning C4305: 'argomento': troncamento da 'double' a 'float'
+C:\Users\mirco\Desktop\C++\Pong-raylib\Pong-raylib\Main.cpp(307,113): warning C4244: 'argomento': conversione da 'float' a 'int'. Possibile perdita di dati.
+C:\Users\mirco\Desktop\C++\Pong-raylib\Pong-raylib\Main.cpp(307,47): warning C4244: 'argomento': conversione da 'float' a 'int'. Possibile perdita di dati.
   Pong-raylib.vcxproj -> C:\Users\mirco\Desktop\C++\Pong-raylib\x64\Debug\Pong-raylib.exe
