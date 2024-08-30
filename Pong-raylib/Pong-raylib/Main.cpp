@@ -173,6 +173,7 @@ int main(void)
     srand(time(NULL));
     // Initialization
     //--------------------------------------------------------------------------------------
+    ChangeDirectory("../..");
     const int screenWidth = 1280;
     const int screenHeight = 800;
     int Paddle_y = screenHeight / 2;
@@ -222,7 +223,7 @@ int main(void)
     // Costruisci il percorso completo del file audio
     std::string musicPath = workingdirectory + "\\x64\\Debug\\Musicadisottofondo.ogg";
     std::string Paddlehitsound = workingdirectory + "\\x64\\Debug\\PaddleHit.wav";
-    std::string Wallhit = workingdirectory + "/x64/Debug/HitMuro.wav";
+    std::string Wallhit = workingdirectory + "\\x64\\Debug\\HitMuro.wav";
     
     // Carica e riproduci la musica
     Music MusicaSottofondo = LoadMusicStream(musicPath.c_str());
