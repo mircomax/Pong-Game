@@ -4,6 +4,7 @@
 #include <ctime>
 #include <iostream>
 #include <cmath>
+#include <filesystem>
 class Ball {
     private:
         float x, y;
@@ -14,8 +15,9 @@ class Ball {
             y = 800 / 2;
             speed_x = -6.5;
             speed_y = -6.5;
-            radius = 20.0;
+            radius = 20.0; 
         }
+
         void DrawBall() {
             DrawCircle(x, y, radius, GetColor(0xFFD700FF)); //Disegna la palla
             DrawCircleLines(x, y, radius, BLACK);
@@ -24,10 +26,11 @@ class Ball {
             x += speed_x;
             y += speed_y;
             if (y + radius >= GetScreenHeight() || y - radius <= 0) { 
-                speed_y *= -1;  //se colpisce il lato destro  o sinistro dello schermo inverte la velocita su x
+                speed_y *= -1;  //stessa cosa ma con il lato inferiore e superiore
             }
             if (x + radius >= GetScreenWidth() || x - radius <= 0 ) {
-                speed_x *= -1; //stessa cosa ma con il lato inferiore e superiore
+                speed_x *= -1; 
+                //se colpisce il lato destro  o sinistro dello schermo inverte la velocita su x
             }
         }
         void ResetPartita() {
@@ -59,6 +62,9 @@ class Ball {
         }
         void setspeedX(float speedX) {
             speed_x = speedX;
+        }
+        int getY() {
+            return y;
         }
 };
 
@@ -113,14 +119,14 @@ float IncrementoDifficolta(int& PunteggioAI, int& PunteggioUser) {
 
 void LightEffect(Rectangle rett, Color lightcolor, int showLightEffect, Ball& palla) {
     if (showLightEffect > 1 && showLightEffect % 2 == 0) {
-        DrawRectangleRec(rett, lightcolor);
+        DrawRectangleRec(rett, lightcolor); // L'effetto luminoso compare una volta ogni 2 frame per 30 frame
     }
     if (showLightEffect > 1) palla.ResetPartita(); // Ferma la palla al centro
 }
 
-void MostraTestoGo(bool& showGoText, int& goTextFrames, const int goTextDurationFrames, int showLightEffect) {
+void MostraTestoGo(bool& showGoText, int& goTextFrames, const int goTextDurationFrames, int showLightEffect, bool& Iniziopartita) {
     if (showLightEffect < 5) {// Mostriamo il testo solo quando la palla sta per ripartire
-        if (showGoText) {
+        if (showGoText || Iniziopartita) {
             // Disegna il testo al centro dello schermo
             DrawText("GO!", (GetScreenWidth() / 2) - (MeasureText("GO!", 100) / 2), (GetScreenHeight() / 2) - (50), 100, BLACK);
 
@@ -130,6 +136,7 @@ void MostraTestoGo(bool& showGoText, int& goTextFrames, const int goTextDuration
             // Disattiva il flag quando il contatore dei frame raggiunge 0
             if (goTextFrames <= 0) {
                 showGoText = false;
+                Iniziopartita = false;
             }
         }
     }
@@ -154,6 +161,12 @@ void DisegnaMenuPausa(Rectangle Pausa[], Color lightColor) { // Disegnare menu d
     DrawText("ESCI", Pausa[2].x + (Pausa[2].width - MeasureText("ESCI", 60)) / 2, Pausa[2].y + (Pausa[2].height - 60) / 2, 60, WHITE);
 }
 
+void PlayWallHit(Sound& wallhit, Ball& palla, bool suonoattivo) {
+    if ((palla.getY() + 20 >= GetScreenHeight() || palla.getY() - 20 <= 0) && suonoattivo) {
+        PlaySound(wallhit);  
+    }
+}
+
 Ball palla1;
 int main(void)
 {
@@ -167,6 +180,7 @@ int main(void)
     float PaddleAI_speed = 5.9;
     int PunteggioUser = 0, PunteggioAI = 0;
     SetConfigFlags(FLAG_VSYNC_HINT); // Rende tutto più fluido
+    InitAudioDevice();
     InitWindow(screenWidth, screenHeight, "Pong game!");
     int counter = 0;
     SetTargetFPS(60); // Set our game to run at 60 frames-per-second
@@ -186,18 +200,43 @@ int main(void)
     int goTextFrames = 0;
     const int goTextDurationFrames = 40; // Mostra il testo per 40 frame
 
+    bool MusicaAttiva = true;
+    bool SuonoAttivo = true; // Per attivare e disattivare i suoni
+    Rectangle MusicButton = { screenWidth / 2 - 320, screenHeight / 2 + 75, 170, 60 };
+    Rectangle SoundButton = { screenWidth / 2 + 150, screenHeight / 2 + 75, 170, 60 };
     Rectangle pauseButton = { screenWidth - 60, 10, 50, 50 }; // Bottone di pausa
     Rectangle ButtonsPause[3];
     const int ButtonsPauseWidth = 400, ButtonsPauseHeight = 150; //Definisce altezza e larghezza dei bottoni di pausa
-    Rectangle startButton = { screenWidth / 2 - 100, screenHeight / 2 + 75, 200, 70}; // Bottone di avvio
+    Rectangle startButton = { screenWidth / 2 - 125, screenHeight / 2 + 65, 250, 80}; // Bottone di avvio
     GameState stato = MENU; //Il programma inizia con il menu 
+
+    bool iniziopartita = true; // Per mostrare il testo GO! appena si preme start
+    Color Rossoscuro = GetColor(0x8B0000FF); // Rosso scuro per il testo dei bottoni nel menu principale
+    // Colori dei bottoni principali
+    Color BackgroundMenuSound = GREEN, BackgroundMenuMusic = GREEN;
+    Color TextMenuSound = DARKGREEN, TextMenuMusic = DARKGREEN;
+
+    //Musica
+    std::string workingdirectory = GetWorkingDirectory();
+
+    // Costruisci il percorso completo del file audio
+    std::string musicPath = workingdirectory + "\\x64\\Debug\\Musicadisottofondo.ogg";
+    std::string Paddlehitsound = workingdirectory + "\\x64\\Debug\\PaddleHit.wav";
+    std::string Wallhit = workingdirectory + "/x64/Debug/HitMuro.wav";
+    
+    // Carica e riproduci la musica
+    Music MusicaSottofondo = LoadMusicStream(musicPath.c_str());
+    Sound WallHit = LoadSound(Wallhit.c_str());
+    Sound PaddleHitSound = LoadSound(Paddlehitsound.c_str());
+    PlayMusicStream(MusicaSottofondo);
+    SetMusicVolume(MusicaSottofondo, 0.6);
 
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
         Rectangle PaddleGiocatore = { (float)(screenWidth - 35), (float)(Paddle_y - 60), (float)25, (float)120 };
         Rectangle PaddleAI = { (float)10,(float)(PaddleAI_y - 60),(float)25,(float)120 };
-
+        UpdateMusicStream(MusicaSottofondo); // Aggiorna la musica di sottofondo
         if (stato == MENU) {
             // Controllo se il giocatore clicca sul bottone "Start Game"
             if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
@@ -205,6 +244,36 @@ int main(void)
 
                 if (CheckCollisionPointRec(mousePos, startButton)) { // Controlla se lo user preme start
                     stato = GAMEPLAY; // Avvia il gioco
+                }
+                if (CheckCollisionPointRec(mousePos, MusicButton)) {
+                    //Se l'utente schiaccia sul pulsante la musica si attiva e disattiva
+                    if (IsMusicStreamPlaying(MusicaSottofondo)) {
+                        PauseMusicStream(MusicaSottofondo);
+                        MusicaAttiva = false;
+                        // Cambia i colori del bottone
+                        BackgroundMenuMusic = RED;
+                        TextMenuMusic = Rossoscuro;
+                    }
+                    else{
+                        ResumeMusicStream(MusicaSottofondo);
+                        MusicaAttiva = true;
+                        BackgroundMenuMusic = GREEN;
+                        TextMenuMusic = DARKGREEN;
+                    }                    
+                } // Se l'utente schiaccia sul pulsante l'audio si attiva e disattiva
+                if (CheckCollisionPointRec(mousePos, SoundButton)) {  
+                    if (SuonoAttivo) {
+                        SuonoAttivo = false;
+                        // Cambia i colori del bottone
+                        BackgroundMenuSound = RED;
+                        TextMenuSound = Rossoscuro;
+                    }
+                    else {
+                        SuonoAttivo = true;
+                        // Cambia i colori del bottone
+                        BackgroundMenuSound = GREEN;
+                        TextMenuSound = DARKGREEN;
+                    }
                 }
             }
         }
@@ -217,13 +286,13 @@ int main(void)
 
             // Controllo se il giocatore clicca sul bottone "PAUSA"
             if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-                Vector2 mousePos = GetMousePosition(); //Posizione del mouse 
+                Vector2 mousePos = GetMousePosition(); // Posizione del mouse 
 
-                if (CheckCollisionPointRec(mousePos, pauseButton)) { // Controlla se lo user preme start
-                    stato = PAUSE; // Avvia il gioco
+                if (CheckCollisionPointRec(mousePos, pauseButton)) { // Controlla se lo user preme Pausa
+                    stato = PAUSE; // Mette in pausa il gioco
                 }
             }
-
+            PlayWallHit(WallHit, palla1, SuonoAttivo);
             //Controllo se uno dei due giocatori fa punto
             if (palla1.GetX() + 20 >= screenWidth) {
                 palla1.ResetPartita(); //viene resettata la palla al centro dello schermo
@@ -280,9 +349,14 @@ int main(void)
         ClearBackground(cornflowerBlue);
 
             if (stato == MENU) {
+                DrawRectangleRec(MusicButton, BackgroundMenuMusic);
+                DrawRectangleRec(SoundButton, BackgroundMenuSound);
                 DrawRectangleRec(startButton, RAYWHITE); // Disegna il bottone "Start"
+                //Scrivere il testo all'interno di ogni bottone
+                DrawText(TextFormat("SOUND: %s", (SuonoAttivo) ? "ON" : "OFF"), SoundButton.x + (SoundButton.width - MeasureText(TextFormat("SOUND: %s", (SuonoAttivo) ? "ON" : "OFF"), 25)) / 2, SoundButton.y + (SoundButton.height - 25) / 2, 25, TextMenuSound);
+                DrawText(TextFormat("MUSIC: %s", MusicaAttiva ? "ON" : "OFF"), MusicButton.x + (MusicButton.width - MeasureText(TextFormat("MUSIC: %s", MusicaAttiva ? "ON" : "OFF"), 25)) / 2, MusicButton.y + (MusicButton.height - 25) / 2, 25, TextMenuMusic);
                 DrawText("PONG GAME", screenWidth / 2 - MeasureText("PONG GAME", 100) / 2, screenHeight / 2 - 250, 100, DARKBLUE);
-                DrawText("Click to Start", screenWidth / 2 - MeasureText("Click to Start", 20) / 2, screenHeight / 2 + 100, 20, DARKGRAY);               
+                DrawText("Click to Start", (screenWidth / 2) - MeasureText("Click to Start", 30) / 2, screenHeight / 2 + 90, 30, DARKGRAY);               
             }
             else if (stato == GAMEPLAY) {
 
@@ -290,6 +364,7 @@ int main(void)
                 DrawText(TextFormat("FPS: %d", GetFPS()), 10, 10, 20, TextColor); // Mostra gli FPS a schermo
 
                 if ((CheckCollisionCircleRec(palla1.GetCD(), (float)20, PaddleGiocatore)) || (CheckCollisionCircleRec(palla1.GetCD(), (float)20, PaddleAI))) {
+                    if (SuonoAttivo) PlaySound(PaddleHitSound);
                     palla1.InvertiVelocitaX(); // Inverte la velocità della palla se c'è una collisione con un paddle
                     palla1.UpdateBall(); // Aggiorna la posizione della palla per evitare sovrapposizioni 
                 }
@@ -305,7 +380,7 @@ int main(void)
                 DrawText(TextFormat("%d", PunteggioAI), (screenWidth / 2) - ((MeasureText("CPU SIDE", 25) / 2) + MeasureText("0", 30)), 10, 30, BLACK);
                 DrawRectangleRec(pauseButton, GetColor(0xAFCBFFFF)); DrawRectangleLinesEx(pauseButton, 0.8, BLACK);
                 DrawText("| |", pauseButton.x + (pauseButton.width - MeasureText("| |", 30)) / 2, pauseButton.y + (pauseButton.height - 25) / 2, 30, BLACK);
-                MostraTestoGo(showGoText, goTextFrames, goTextDurationFrames, showLightEffect); //Mostrare il testo GO!
+                MostraTestoGo(showGoText, goTextFrames, goTextDurationFrames, showLightEffect, iniziopartita); //Mostrare il testo GO!
                 // Disegna l'effetto di illuminazione se necessario
                 LightEffect(lightRect, lightColor, showLightEffect, palla1);
                 
@@ -332,7 +407,10 @@ int main(void)
 
          EndDrawing();
     }
-
+    UnloadMusicStream(MusicaSottofondo);
+    UnloadSound(PaddleHitSound);
+    UnloadSound(WallHit);
+    CloseAudioDevice();
     // De-Initialization
     //---------------------------------------------------------------------------------------------------------------
     CloseWindow();        // Close window and OpenGL context
